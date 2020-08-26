@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<!-- Catálogo no oficial, desarrollado por dajavax sin ninguna afiliación a Young Living™. http://www.dajavax.com -->
+<html>
+	<head>
+		<style type="text/css">
+			.skuimg{
+				max-height:250px;
+				max-width:250px;
+				height:auto;
+				width:auto;
+			}
+		</style>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+		<link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.16.0/dist/bootstrap-table.min.css" integrity="sha384-stUTdwV9AgSXI+zB6SWTZSIq0SP1EKWXA/H6rWp1hNmSwvjkuFCwPhqcA01KnlWS" crossorigin="anonymous">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css" integrity="sha384-yakM86Cz9KJ6CeFVbopALOEQGGvyBFdmA4oHMiYuHcd9L59pLkCEFSlr6M9m434E" crossorigin="anonymous">
+
+		<script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script>
+		<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+		<script src="https://unpkg.com/bootstrap-table@1.16.0/dist/bootstrap-table.min.js" integrity="sha384-W/LH8RGi1CAONGTnvEB4NWjQ6p4GE6qGHSFZUOalxWWwyvcIr8btqBmjvMSBs+HT" crossorigin="anonymous"></script>
+		<script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js" integrity="sha384-Q9RsZ4GMzjlu4FFkJw4No9Hvvm958HqHmXI9nqo5Np2dA/uOVBvKVxAvlBQrDhk4" crossorigin="anonymous"></script>
+		
+		<title>Catálogo Young Living™</title>
+	</head>
+	<body>
+		<div id="toolbar">
+			<div class="form-check form-check-inline">
+				<label for="pais" class="form-check-label">País:&nbsp;</label>
+				<div class="btn-group btn-group-toggle" data-toggle="buttons">
+				  <label class="btn btn-primary">
+					<input type="radio" name="pais" id="mexico" value="es-MX/MX" autocomplete="off" checked data-sku-suffix="11"> México
+				  </label>
+				  <label class="btn btn-primary">
+					<input type="radio" name="pais" id="usa" value="en-US/US" autocomplete="off"> USA
+				  </label>
+				</div>
+			</div>
+			<div class="form-check form-check-inline">
+				<label for="promociones" class="form-check-label">Solo Promociones:&nbsp;</label>
+				<input id="promociones" class="form-check-input" type="checkbox" data-toggle="toggle">
+			</div>
+			<div class="form-check form-check-inline">
+				<label for="distribuidor" class="form-check-label">Mostrar precios de distribuidor:&nbsp;</label>
+				<input id="distribuidor" class="form-check-input" type="checkbox" data-toggle="toggle">
+			</div>
+		</div>
+		<table class="table" id="table" data-toggle="table" data-search="true" data-toolbar="#toolbar">
+			<thead>
+				<tr>
+					<th scope="col" data-field="partNumber" data-formatter="pictureFormatter" data-align="center"></th>
+					<th scope="col" data-field="partNumber" data-sortable="true">SKU</th>
+					<th scope="col" data-field="name" data-sortable="true" data-formatter="nameFormatter">Nombre</th>
+					<th scope="col" data-field="pointValue" data-sortable="true" data-formatter="pointsFormatter">Puntos</th>
+					<th scope="col" data-field="wholesaleDisplayPrice" data-sortable="true" data-formatter="priceFormatter">Precio Distribuidor</th>
+					<th scope="col" data-field="retailDisplayPrice" data-sortable="true" data-formatter="priceFormatter">Precio Público</th>
+					<th scope="col" data-field="tax" data-formatter="taxFormatter">Impuestos</th>
+					<th scope="col" data-field="taxRetail" data-formatter="taxRetailFormatter">Impuestos</th>
+					<th scope="col" data-field="totalWholesale" data-formatter="totalPriceFormatter">Precio Total</th>
+					<th scope="col" data-field="totalRetail" data-formatter="totalRetailPriceFormatter">Precio Total</th>
+				<tr>
+			</thead>
+		</table>
+		<div id="footer">
+			Catálogo no oficial, desarrollado por dajavax sin ninguna afiliación a Young Living™.
+		</div>
+	</body>
+	<script type="text/javascript">
+		var $table;
+		$(function() {
+			$table = $('#table');
+			loadData();
+			$("#pais").change(loadData);
+			$('input[name=pais]:radio').change(loadData);
+			$("#promociones").change(function() {$table.bootstrapTable('filterBy', {canPurchase: [true]}, {filterAlgorithm: filterBy});});
+			$("#distribuidor").change(changePriceDisplay);
+		});
+		
+		function loadData() {
+			changePriceDisplay();
+			$table.bootstrapTable('load', []);
+			$table.bootstrapTable('showLoading');
+			$.getJSON(getUrl(this), loadTable);
+		}
+		function changePriceDisplay() {
+			if($("#distribuidor").is(":checked")) {
+				$table.bootstrapTable('hideColumn', ['retailDisplayPrice', 'taxRetail', 'totalRetail']);
+				$table.bootstrapTable('showColumn', ['wholesaleDisplayPrice', 'tax', 'totalWholesale']);
+			} else {
+				$table.bootstrapTable('hideColumn', ['wholesaleDisplayPrice', 'tax', 'totalWholesale']);
+				$table.bootstrapTable('showColumn', ['retailDisplayPrice', 'taxRetail', 'totalRetail']);
+			}
+		}
+		function getUrl(countryCheckbox) {
+			return 'http://cors-anywhere.herokuapp.com/https://www.youngliving.com/api/shopping/product-catalog/'+$("input[name='pais']:checked").val()+'/2';
+		}
+		function loadTable(data) {
+			$table.bootstrapTable('load', data.items);
+			$table.bootstrapTable('filterBy', {
+				canPurchase: [true]
+			}, {filterAlgorithm: filterBy});
+			changePriceDisplay();
+			$table.bootstrapTable('hideLoading');
+		}
+		function filterBy(row, filters){
+			if(row.canPurchase || row.canAddToAutoship) {
+				if($("#promociones").is(':checked') && $.isNumeric(row.partNumber)) return false;
+				return true;
+			}
+			return false;
+		}
+		function fixImage(img){
+			var suffix = $("input[name='pais']:checked").attr('data-sku-suffix');
+			if(suffix != null) {
+				if(img.src.endsWith(suffix+".jpg")) {
+					img.src = img.src.slice(0, -suffix.length-4) + ".jpg";
+					return;
+				}
+			}
+			img.style.display = 'none';
+		}
+		function calculateTotal(sku){
+			var tax = $("#tax-amount-"+sku).val();
+			if(tax == '') {
+				$("#total-"+sku).val('');
+				return;
+			}
+			var value = '';
+			var $total = $("#total-"+sku);
+			if($("#tax-type-"+sku).val() == "percentage") {
+				value = addDecimalPoint(Math.round(addDecimalPoint($total.attr("data-price")*(tax*1+100)+'', 2)), $total.attr('data-round-factor'));
+			} else {
+				value = addDecimalPoint($total.attr("data-price")*1+tax*Math.pow(10, $total.attr('data-round-factor')), $total.attr('data-round-factor'));
+			}
+			$total.val(value);
+		}
+		function nameFormatter(value, row, index) {
+			var alert = '';
+			if(!$.isNumeric(row.partNumber)) alert += ' <span class = "badge badge-pill badge-warning">¡Promoción!</span>';
+			if(!row.canPurchase && row.canAddToAutoship) alert += ' <span class = "badge badge-pill badge-info">Solo por ER</span>';
+			if(!row.inStock) alert += ' <span class = "badge badge-pill badge-danger">Agotado</span>';
+			return value+alert;
+		}
+		function priceFormatter(value, row, index) {
+			return '$'+addDecimalPoint(value, row.currency.roundFactor)+" "+row.currency.code;
+		}
+		function taxFormatter(value, row, index) {
+			if(row.taxRate) return priceFormatter(value, row, index);
+			return '<div class="input-group"><input type="text" class="form-control" id="tax-amount-'+row.partNumber+'" onchange="calculateTotal('+row.partNumber+')"/><div class="input-group-append"><select id="tax-type-'+row.partNumber+'" class="btn btn-outline-secondary dropdown-toggle" onchange="calculateTotal('+row.partNumber+')"><option value="percentage">%</option><option value="currency">'+row.currency.code+'</option></select></div></div>';
+		}
+		function taxRetailFormatter(value, row, index) {
+			if(row.taxRate) return priceFormatter(Math.round(row.retailDisplayPrice*row.taxRate/100), row, index);
+			return '<div class="input-group"><input type="text" class="form-control" id="tax-amount-'+row.partNumber+'" onchange="calculateTotal('+row.partNumber+')"/><div class="input-group-append"><select id="tax-type-'+row.partNumber+'" class="btn btn-outline-secondary dropdown-toggle" onchange="calculateTotal('+row.partNumber+')"><option value="percentage">%</option><option value="currency">'+row.currency.code+'</option></select></div></div>';
+		}
+		function totalPriceFormatter(value, row, index) {
+			if(row.taxRate) return priceFormatter(row.wholesaleDisplayPrice+row.tax, row, index);
+			return '<div class="input-group"><div class="input-group-prepend"><span class="input-group-text">$</span></div><input id="total-'+row.partNumber+'" type="text" class="form-control" data-price="'+row.wholesaleDisplayPrice+'" data-round-factor="'+row.currency.roundFactor+'" disabled/><div class="input-group-append"><span class="input-group-text">'+row.currency.code+'</span></div></div>';
+		}
+		function totalRetailPriceFormatter(value, row, index) {
+			if(row.taxRate) return priceFormatter(Math.round(row.retailDisplayPrice*(row.taxRate+100)/100), row, index);
+			return '<div class="input-group"><div class="input-group-prepend"><span class="input-group-text">$</span></div><input id="total-'+row.partNumber+'" type="text" class="form-control" data-price="'+row.retailDisplayPrice+'" data-round-factor="'+row.currency.roundFactor+'" disabled/><div class="input-group-append"><span class="input-group-text">'+row.currency.code+'</span></div></div>';
+		}
+		function pointsFormatter(value, row, index) {
+			return addDecimalPoint(value, 2);
+		}
+		function addDecimalPoint(value, pos) {
+			var n = value+'';
+			n = n.length >= pos+1 ? n : new Array(pos - n.length + 2).join('0') + n;
+			return n.slice(0, -pos) + '.' + n.slice(-pos);
+		}
+		function pictureFormatter(value) {
+			var sku = parseInt(value);
+			return '<img src="https://static.youngliving.com/productimages/large/'+sku+'.jpg" class="skuimg" onerror="fixImage(this)"/>';
+		}
+	</script>
+</html>
