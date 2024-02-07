@@ -91,7 +91,7 @@
 			}
 		}
 		function getUrl(countryCheckbox) {
-			return 'http://cors-anywhere.herokuapp.com/https://www.youngliving.com/api/shopping/product-catalog/'+$("input[name='pais']:checked").val()+'/2';
+			return 'https://cors-anywhere.herokuapp.com/https://www.youngliving.com/api/shopping/product-catalog/'+$("input[name='pais']:checked").val()+'/2';
 		}
 		function loadTable(data) {
 			$table.bootstrapTable('load', data.items);
